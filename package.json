@@ -1,0 +1,27 @@
+{
+  "name": "fetch-npm-tar",
+  "version": "1.0.2",
+  "description": "download npm tar and all dependencies",
+  "main": "index.js",
+  "bin": {
+    "fetch-npm-tar": "node ./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": {
+    "name": "cdu",
+    "email": "chuyuandu@163.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chuyuandu/fetch-npm-tar.git"
+  },
+  "license": "ISC",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "yaml": "^2.7.1"
+  }
+}
