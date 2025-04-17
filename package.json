@@ -1,10 +1,10 @@
 {
   "name": "fetch-npm-tar",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "download npm tar and all dependencies",
   "main": "index.js",
   "bin": {
-    "fetch-npm-tar": "node ./index.js"
+    "fetch-npm-tar": "./index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
