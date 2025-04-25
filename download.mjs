@@ -13,8 +13,8 @@ const outputFilePath = join(process.cwd(), tgzFolderName);
  * 下载 pnpm-lock.yaml 文件中所有的依赖 npm 包
  * @param {string} filePath pnpm-lock.yaml 文件路径
  */
-export function downloadFilesFromYaml(filePath) {
-  const pkgList = getPackagesFromYaml(filePath);
+export function downloadFilesFromYaml(filePath, includeDeps = true) {
+  const pkgList = getPackagesFromYaml(filePath, includeDeps);
 
   let total = pkgList.length,
     okNum = 0,
@@ -44,23 +44,34 @@ export function downloadFilesFromYaml(filePath) {
 }
 
 /** 通过pnpm-lock.yaml 文件获取所有依赖包列表 */
-function getPackagesFromYaml(filePath) {
+function getPackagesFromYaml(filePath, includeDeps) {
   const fileContent = readFileSync(filePath, "utf8");
   const data = parse(fileContent);
+
   const pkgList = [];
-  for (let pkg in data.packages) {
-    let name, version;
-    if (pkg.startsWith("@")) {
-      const index = pkg.lastIndexOf("@");
-      name = pkg.slice(0, index);
-      version = pkg.slice(index + 1);
-    } else {
-      [name, version] = pkg.split("@");
+  if (includeDeps) {
+    for (let pkg in data.packages) {
+      let name, version;
+      if (pkg.startsWith("@")) {
+        const index = pkg.lastIndexOf("@");
+        name = pkg.slice(0, index);
+        version = pkg.slice(index + 1);
+      } else {
+        [name, version] = pkg.split("@");
+      }
+      pkgList.push({
+        name,
+        version,
+      });
     }
-    pkgList.push({
-      name,
-      version,
-    });
+  } else {
+    const deps = data.importers["."]["dependencies"];
+    for (let pkg in deps) {
+      pkgList.push({
+        name: pkg,
+        version: deps[pkg].version,
+      });
+    }
   }
   return pkgList;
 }

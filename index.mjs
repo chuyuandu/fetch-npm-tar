@@ -1,23 +1,39 @@
 #!/usr/bin/env node
 
 import { execSync } from "child_process";
-import { existsSync, mkdirSync, rmSync, readdirSync, statSync, unlinkSync, rmdirSync } from "fs";
+import {
+  existsSync,
+  mkdirSync,
+  rmSync,
+  readdirSync,
+  statSync,
+  unlinkSync,
+  rmdirSync,
+} from "fs";
 import { resolve as _resolve, join } from "path";
 import { downloadFilesFromYaml } from "./download.mjs";
 import { createInterface } from "readline";
-import { tgzFolderName } from "./util.mjs";
-// import arg from 'arg'
+import { tgzFolderName, getCurrentVersion, getLatestVersion, helpContent } from "./util.mjs";
+import arg from "arg";
 
 let toBeRemoved = [];
 const cwd = process.cwd();
 const tgzFiles = _resolve(cwd, tgzFolderName);
 
-// const args = arg({
-//   '-h': Boolean,
-//   '--lockfile': String,
-  
-// })
-const args = process.argv.slice(2);
+const args = arg({
+  "--help": Boolean,
+  "--version": Boolean,
+  "--lockfile": String,
+  // 是否仅下载指定包名，不解析递归依赖
+  "--no-deps": Boolean,
+
+  // alias
+  "-h": "--help",
+  "-v": "--version",
+  "-f": "--lockfile",
+});
+
+// const args = process.argv.slice(2);
 
 async function initDir() {
   return await new Promise(function (resolve, reject) {
@@ -89,21 +105,24 @@ function emptyDirectory(dirPath) {
 }
 
 async function getLockFile() {
-  const lockfile = args.find((arg) => arg.startsWith("--lockfile"));
+  const lockfile = args["--lockfile"];
   let filePath;
   if (lockfile) {
     await initDir();
-    const [name, file_path] = lockfile.split("=");
-    console.log(file_path);
-    filePath = _resolve(cwd, file_path.replace(/^["']|["']$/, ""));
-  } else if (args.length) {
+    // const [name, file_path] = lockfile.split("=");
+    filePath = _resolve(cwd, lockfile);
+    console.log(`正在使用依赖文件：${filePath}`);
+  } else if (args["_"]) {
     await initDir();
     // // 检查是否通过 npx 调用
     // const isNpx = process.env.npm_execpath && process.env.npm_execpath.includes('npx');
 
-    execSync(`npm init -y && npx pnpm add ${args.join(" ")} --lockfile-only`, {
-      cwd: tgzFiles,
-    });
+    execSync(
+      `npm init -y && npx pnpm add ${args["_"].join(" ")} --lockfile-only`,
+      {
+        cwd: tgzFiles,
+      }
+    );
     filePath = _resolve(tgzFiles, "pnpm-lock.yaml");
     toBeRemoved.push(
       _resolve(tgzFiles, "pnpm-lock.yaml"),
@@ -116,33 +135,28 @@ async function getLockFile() {
   return filePath;
 }
 
-if(args.includes('-h')) {
-    console.log(`
-通过命令行直接下载指定包及所有递归依赖到当前目录下的 ${tgzFolderName} 目录下
-可以直接指定包名，包名写法跟pnpm add 时的参数格式类型，但是目前仅支持 npm 官方的包,以下是一些写法示例, 支持同时多个，空格隔开：
+function handleArgs() {
+  const latestVersion = getLatestVersion();
+  if(latestVersion !== getCurrentVersion()) {
+    console.warn(`当前版本已更新到 ${latestVersion}，建议先更新版本！`)
+  }
 
-  fetch-npm-tar axios
-  fetch-npm-tar axios@^1.7.7
-  fetch-npm-tar vue axios@^1.7.7
-
-也可以下载某个 pnpm-lock.yaml 文件所有的依赖
-
-  fetch-npm-tar --lockfile="<path_to_pnpm-lock.yaml>"
-
-如果是需要下载某个项目的所有依赖，可以现在项目下生成 pnpm-lock.yaml 文件，然后再指定该文件进行下载
-`)
-}
-else {
-
+  if (args["--version"]) {
+    console.log(getCurrentVersion());
+  } else if (args["--help"]) {
+    console.log(helpContent);
+  } else {
     getLockFile().then((file) => {
-        downloadFilesFromYaml(file).finally(() => {
-          console.log(`已成功下载到：${tgzFiles}`);
-          toBeRemoved.forEach((file) => {
-            rmSync(file, {
-              force: true,
-            });
+      downloadFilesFromYaml(file, !args['--no-deps']).finally(() => {
+        console.log(`已成功下载到：${tgzFiles}`);
+        toBeRemoved.forEach((file) => {
+          rmSync(file, {
+            force: true,
           });
         });
       });
+    });
+  }
 }
 
+handleArgs();
