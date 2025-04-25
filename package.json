@@ -1,12 +1,15 @@
 {
   "name": "fetch-npm-tar",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "download npm tar and all dependencies",
-  "main": "index.js",
+  "main": "index.mjs",
+  "type": "module",
   "bin": {
-    "fetch-npm-tar": "./index.js"
+    "fetch-npm-tar": "./index.mjs"
   },
-  "keywords": ["fetch npm"],
+  "keywords": [
+    "fetch npm"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -23,6 +26,8 @@
     "registry": "https://registry.npmjs.org"
   },
   "dependencies": {
+    "arg": "^5.0.2",
+    "p-limit": "^6.2.0",
     "yaml": "^2.7.1"
   }
 }

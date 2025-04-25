@@ -1,24 +1,22 @@
 #!/usr/bin/env node
 
-const { execSync } = require("child_process");
-const {
-  existsSync,
-  mkdirSync,
-  rmSync,
-  readdirSync,
-  statSync,
-  unlinkSync,
-  rmdirSync,
-} = require("fs");
-const path = require("path");
-const { downloadFilesFromYaml } = require("./download");
-const readline = require("readline");
-const { tgzFolderName } = require("./util");
+import { execSync } from "child_process";
+import { existsSync, mkdirSync, rmSync, readdirSync, statSync, unlinkSync, rmdirSync } from "fs";
+import { resolve as _resolve, join } from "path";
+import { downloadFilesFromYaml } from "./download.mjs";
+import { createInterface } from "readline";
+import { tgzFolderName } from "./util.mjs";
+// import arg from 'arg'
 
 let toBeRemoved = [];
 const cwd = process.cwd();
-const tgzFiles = path.resolve(cwd, tgzFolderName);
+const tgzFiles = _resolve(cwd, tgzFolderName);
 
+// const args = arg({
+//   '-h': Boolean,
+//   '--lockfile': String,
+  
+// })
 const args = process.argv.slice(2);
 
 async function initDir() {
@@ -27,7 +25,7 @@ async function initDir() {
       console.error(`${tgzFiles} 已经存在，请考虑删除或换个目录执行`);
 
       // 创建 readline 接口
-      const rl = readline.createInterface({
+      const rl = createInterface({
         input: process.stdin,
         output: process.stdout,
       });
@@ -38,10 +36,10 @@ async function initDir() {
         (val) => {
           if (val === "1") {
             // 叠加下载前，需要清除可能存在的 lock 和 json 文件
-            rmSync(path.resolve(tgzFiles, "pnpm-lock.yaml"), {
+            rmSync(_resolve(tgzFiles, "pnpm-lock.yaml"), {
               force: true,
             });
-            rmSync(path.resolve(tgzFiles, "package.json"), {
+            rmSync(_resolve(tgzFiles, "package.json"), {
               force: true,
             });
             resolve();
@@ -74,7 +72,7 @@ function emptyDirectory(dirPath) {
   const files = readdirSync(dirPath);
 
   for (const file of files) {
-    const filePath = path.join(dirPath, file);
+    const filePath = join(dirPath, file);
     const stats = statSync(filePath);
 
     if (stats.isDirectory()) {
@@ -97,7 +95,7 @@ async function getLockFile() {
     await initDir();
     const [name, file_path] = lockfile.split("=");
     console.log(file_path);
-    filePath = path.resolve(cwd, file_path.replace(/^["']|["']$/, ""));
+    filePath = _resolve(cwd, file_path.replace(/^["']|["']$/, ""));
   } else if (args.length) {
     await initDir();
     // // 检查是否通过 npx 调用
@@ -106,10 +104,10 @@ async function getLockFile() {
     execSync(`npm init -y && npx pnpm add ${args.join(" ")} --lockfile-only`, {
       cwd: tgzFiles,
     });
-    filePath = path.resolve(tgzFiles, "pnpm-lock.yaml");
+    filePath = _resolve(tgzFiles, "pnpm-lock.yaml");
     toBeRemoved.push(
-      path.resolve(tgzFiles, "pnpm-lock.yaml"),
-      path.resolve(tgzFiles, "package.json")
+      _resolve(tgzFiles, "pnpm-lock.yaml"),
+      _resolve(tgzFiles, "package.json")
     );
   } else {
     console.error(`请指定需要下载的包`);

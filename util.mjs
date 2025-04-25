@@ -1,0 +1,1 @@
+export const tgzFolderName = '_downloaded_tgz_files_'
