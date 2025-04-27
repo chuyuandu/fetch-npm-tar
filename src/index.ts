@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -9,14 +9,14 @@ import {
   statSync,
   unlinkSync,
   rmdirSync,
-} from "fs";
-import { resolve as _resolve, join } from "path";
-import { downloadFilesFromYaml } from "./download.mjs";
-import { createInterface } from "readline";
-import { tgzFolderName, getCurrentVersion, getLatestVersion, helpContent } from "./util.mjs";
+} from "node:fs";
+import { resolve as _resolve, join } from "node:path";
+import { downloadFilesFromYaml } from "./download";
+import { createInterface } from "node:readline";
+import { tgzFolderName, getCurrentVersion, getLatestVersion, helpContent } from "./util";
 import arg from "arg";
 
-let toBeRemoved = [];
+let toBeRemoved: string[] = [];
 const cwd = process.cwd();
 const tgzFiles = _resolve(cwd, tgzFolderName);
 
@@ -35,7 +35,7 @@ const args = arg({
 
 // const args = process.argv.slice(2);
 
-async function initDir() {
+async function initDir(): Promise<void> {
   return await new Promise(function (resolve, reject) {
     if (existsSync(tgzFiles)) {
       console.error(`${tgzFiles} 已经存在，请考虑删除或换个目录执行`);
@@ -78,7 +78,7 @@ async function initDir() {
   });
 }
 
-function emptyDirectory(dirPath) {
+function emptyDirectory(dirPath: string) {
   if (!existsSync(dirPath)) {
     console.error(`目录不存在: ${dirPath}`);
     return;

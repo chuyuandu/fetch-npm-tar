@@ -1,6 +1,7 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+// import { readFileSync } from "node:fs";
+// import { resolve } from "node:path";
 import { execSync } from "node:child_process";
+import pkg from '../package.json'
 
 export const tgzFolderName = "_downloaded_tgz_files_";
 
@@ -12,7 +13,7 @@ export const helpContent = `
   fetch-npm-tar axios@^1.7.7
   fetch-npm-tar vue axios@^1.7.7
 
-默认会解析所有递归的依赖，如果不需要下载其递归的依赖可以添加参数 --no-dep
+默认会解析所有递归的依赖，如果不需要下载其递归的依赖可以添加参数 --no-deps
 
 fetch-npm-tar vue --no-deps
 
@@ -20,24 +21,25 @@ fetch-npm-tar vue --no-deps
 
   fetch-npm-tar --lockfile="<path_to_pnpm-lock.yaml>"
 
-指定文件下载时，如果设定了 --no-dep 参数，那么只会下载 importers[''']['dependencies] 下的依赖
+指定文件下载时，如果设定了 --no-deps 参数，那么只会下载 importers[''']['dependencies] 下的依赖
 对应的是 package.json 的 dependencies
 
 如果是需要下载某个项目的所有依赖，可以现在项目下生成 pnpm-lock.yaml 文件，然后再指定该文件进行下载
 `;
 
 /** 获取当前运行的版本号 */
-export function getCurrentVersion() {
-  const pkg = readFileSync(resolve(import.meta.dirname, "./package.json"));
-  return JSON.parse(pkg).version;
+export function getCurrentVersion(): string {
+  // const pkg = readFileSync(resolve(import.meta.dirname, "./package.json"));
+  // return JSON.parse(pkg).version;
+  return pkg.version;
 }
 
 /** 获取当前包的最新版本号 */
-export function getLatestVersion() {
+export function getLatestVersion(): string {
   let version = "";
   try {
     version = execSync("npm view fetch-npm-tar version").toString().trim();
-  } catch (err) {
+  } catch (err: any) {
     console.error("获取 npm 最新版本失败:", err.message);
   }
   return version;
