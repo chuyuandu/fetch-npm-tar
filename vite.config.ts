@@ -1,6 +1,7 @@
 import path from "path";
 import { defineConfig } from "vite";
 import packageJson from "./package.json";
+import { LibraryFormats } from "vite";
 
 const getPackageName = () => {
   return packageJson.name;
@@ -13,31 +14,35 @@ const getPackageNameCamelCase = () => {
     throw new Error("Name property in package.json is missing.");
   }
 };
+const dependencies = Object.keys(packageJson.dependencies || {});
 
 const fileName = {
-  es: `${getPackageName()}.mjs`,
+  index_es: `index.mjs`,
   // cjs: `${getPackageName()}.cjs`,
   // umd: `${getPackageName()}.umd.js`,
+  bin_es: `${getPackageName()}.mjs`,
 };
 
-const formats = Object.keys(fileName) as Array<keyof typeof fileName>;
+const formats: LibraryFormats[] =  ['es']; //Object.keys(fileName) as Array<keyof typeof fileName>;
 
 export default defineConfig({
   base: "./",
   build: {
-    target: 'node20',
+    target: "node20",
     outDir: "./dist",
     lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
+      entry: {
+        index: path.resolve(__dirname, "src/index.ts"),
+        bin: path.resolve(__dirname, "src/bin.ts")
+      },
       name: getPackageNameCamelCase(),
       formats,
-      fileName: (format) => fileName[format],
+      fileName: (format, entryName: string) => {
+        return fileName[`${entryName}_${format}`];
+      },
     },
     rollupOptions: {
-      // 确保外部化处理那些
-      // 你不想打包进库的依赖
-      // external: [/^node:*/, 'arg', 'p-limit', 'yaml'],
-      external: [/^node:*/],
+      external: [/^node:*/, ...dependencies],
     },
   },
 

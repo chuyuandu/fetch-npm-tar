@@ -1,51 +1,63 @@
 import { parse } from "yaml";
+// import { cpus } from "node:os";
 import { join, dirname } from "node:path";
-import { readFileSync, createWriteStream, unlink, rename, type WriteStream } from "node:fs";
+import {
+  createWriteStream,
+  unlink,
+  rename,
+  type WriteStream,
+  existsSync,
+} from "node:fs";
 import { execSync } from "node:child_process";
 import { get } from "node:https";
 import pLimit from "p-limit";
 import { tgzFolderName } from "./util";
+import { Output } from "./output";
+import chalk from "chalk";
+import { readFile } from "node:fs/promises";
 
-const limit = pLimit(12);
+// const limit = pLimit(cpus().length);
+const limit = pLimit(8);
 const outputFilePath = join(process.cwd(), tgzFolderName);
+
+const output = new Output(outputFilePath);
 
 /**
  * 下载 pnpm-lock.yaml 文件中所有的依赖 npm 包
  * @param {string} filePath pnpm-lock.yaml 文件路径
  */
-export function downloadFilesFromYaml(filePath: string, includeDeps = true) {
-  const pkgList = getPackagesFromYaml(filePath, includeDeps);
+export async function downloadFilesFromYaml(filePath: string, includeDeps = true) {
+  const pkgList = await getPackagesFromYaml(filePath, includeDeps);
 
-  let total = pkgList.length,
-    okNum = 0,
-    errorNum = 0;
-  console.log(`开始下载，共 ${total} 个包...`);
+  let total = pkgList.length;
+
+  output.start(total);
   const registry = getRegistry(dirname(filePath));
   const downloadList = pkgList.map((pkg) => {
     return limit(() =>
       downloadFile(registry, pkg.name, pkg.version)
         .then(() => {
-          okNum++;
+          output.succeedItem();
         })
-        .catch(() => {
-          console.error(`下载错误: ${pkg.name}@${pkg.version}`);
-          errorNum++;
-        })
-        .finally(() => {
-          console.log(
-            `已下载:${okNum},失败：${errorNum}, 剩余 ${
-              total - okNum - errorNum
-            }`
+        .catch((error) => {
+          output.failedItem(
+            `download failed: ${chalk.bgRed(
+              `${pkg.name}@${pkg.version}`
+            )} , ${chalk.red(
+              typeof error === "string" ? error : error.message
+            )}`
           );
         })
     );
   });
-  return Promise.all(downloadList);
+  return Promise.all(downloadList).finally(() => {
+    output.finish();
+  });
 }
 
 /** 通过pnpm-lock.yaml 文件获取所有依赖包列表 */
-function getPackagesFromYaml(filePath: string, includeDeps: boolean) {
-  const fileContent = readFileSync(filePath, "utf8");
+async function getPackagesFromYaml(filePath: string, includeDeps: boolean) {
+  const fileContent = await readFile(filePath, "utf8");
   const data = parse(fileContent);
 
   const pkgList = [];
@@ -76,20 +88,26 @@ function getPackagesFromYaml(filePath: string, includeDeps: boolean) {
   return pkgList;
 }
 
-
-function createWriteStreamWithRetry(filePath: string, retries = 5, delay = 100): Promise<WriteStream> {
+function createWriteStreamWithRetry(
+  filePath: string,
+  retries = 5,
+  delay = 100
+): Promise<WriteStream> {
   return new Promise((resolve, reject) => {
     const attempt = (attemptCount: number) => {
       const stream = createWriteStream(filePath);
       stream.on("error", (err: any) => {
         if (err.code === "EPERM" && attemptCount < retries) {
-          console.warn(
-            `尝试 ${attemptCount + 1}/${retries} 写入文件失败，重试中...`
+          output.failedItem(
+            chalk.yellow(
+              `尝试写入文件失败，重试中...  ${attemptCount + 1}/${retries} `
+            ),
+            false
           );
           setTimeout(() => attempt(attemptCount + 1), delay);
         } else {
-          console.error(`尝试写入文件 ${filePath} 失败`);
-          reject(err);
+          // output.failedItem(`尝试写入文件 ${filePath} 失败`);
+          reject(`尝试写入文件 ${filePath} 失败, ${err}`);
         }
       });
       stream.on("open", () => resolve(stream));
@@ -99,21 +117,29 @@ function createWriteStreamWithRetry(filePath: string, retries = 5, delay = 100):
 }
 
 /** 从url下载文件，并保存为指定路径下的文件 */
-function downloadUrl(fileUrl: string, filePath: string, maxRedirects = 5): Promise<void> {
-  // const fileStream = createWriteStream(outputPath);
+function downloadUrl(
+  fileUrl: string,
+  filePath: string,
+  maxRedirects = 5
+): Promise<void> {
+  if (existsSync(filePath)) {
+    // 叠加下载时，存在的文件直接跳过
+    return Promise.resolve();
+  }
   const outputPath = `${filePath}_temp`;
   return createWriteStreamWithRetry(outputPath).then((fileStream) => {
     return new Promise(function (resolve, reject) {
+      // if(Math.random() > 0.8 ){
+      //   return reject('aaa')
+      // }
+
       if (maxRedirects <= 0) {
-        console.error("Too many redirects.");
-        reject(); // 防止无限重定向
+        fileStream.close();
+        unlink(outputPath, () => {});
+        reject(`重定向次数过多`); // 防止无限重定向
       }
       get(fileUrl, (response) => {
         if (response.statusCode !== 200) {
-          //   console.error(
-          //     `Failed to download file: ${packageName}@${packageVersion}. Status code: ${response.statusCode}`
-          //   );
-
           fileStream.close();
           response.destroy();
           unlink(outputPath, () => {
@@ -121,17 +147,14 @@ function downloadUrl(fileUrl: string, filePath: string, maxRedirects = 5): Promi
             if (response.statusCode === 301 || response.statusCode === 302) {
               const redirectLocation = response.headers.location;
               if (!redirectLocation) {
-                console.error("Redirect location is missing.");
-                //   process.exit(1);
-                reject();
-              }
-              else {
+                reject(`重定向地址缺失`);
+              } else {
                 resolve(
                   downloadUrl(redirectLocation, filePath, maxRedirects - 1)
                 ); // 递归处理重定向
               }
             } else {
-              reject();
+              reject(response.statusMessage);
             }
           });
 
@@ -148,23 +171,25 @@ function downloadUrl(fileUrl: string, filePath: string, maxRedirects = 5): Promi
           });
         });
 
-        fileStream.on("error", (err: { message: any; }) => {
-          console.error("Error writing file:", err.message, fileUrl);
+        fileStream.on("error", (err: { message: any }) => {
           fileStream.close();
           unlink(outputPath, () => {});
-          reject();
+          reject(err.message);
         });
       }).on("error", (err) => {
-        console.error("Error downloading file:", err.message, fileUrl);
         fileStream.close();
         unlink(outputPath, () => {});
-        reject();
+        reject(err.message);
       });
     });
   });
 }
 /** 从npm仓库下载包 */
-function downloadFile(registry: string, packageName: string, packageVersion: any) {
+function downloadFile(
+  registry: string,
+  packageName: string,
+  packageVersion: any
+) {
   // 构造 tarball URL
   let fileUrl, fileName;
   if (packageName.startsWith("@")) {
@@ -179,7 +204,7 @@ function downloadFile(registry: string, packageName: string, packageVersion: any
   // 下载并保存为指定文件名
   const outputPath = join(outputFilePath, fileName);
 
-  return downloadUrl(fileUrl, outputPath);
+  return Promise.resolve().then(() => downloadUrl(fileUrl, outputPath));
 }
 
 /** 从指定目录获取 npm config 设置的 registry */
