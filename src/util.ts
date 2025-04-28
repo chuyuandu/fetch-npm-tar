@@ -1,10 +1,10 @@
-// import { readFileSync } from "node:fs";
-// import { resolve } from "node:path";
 import { execSync } from "node:child_process";
 import pkg from '../package.json'
 
+/** 下载文件的保存目录名 */
 export const tgzFolderName = "_downloaded_tgz_files_";
 
+/** 帮助文档 */
 export const helpContent = `
 通过命令行直接下载指定包及所有递归依赖到当前目录下的 ${tgzFolderName} 目录下
 可以直接指定包名，包名写法跟pnpm add 时的参数格式类型，但是目前仅支持 npm 官方的包,以下是一些写法示例, 支持同时多个，空格隔开：

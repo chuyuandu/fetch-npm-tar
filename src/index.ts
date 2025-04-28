@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 import { execSync } from "node:child_process";
 import {
   existsSync,
@@ -32,8 +31,6 @@ const args = arg({
   "-v": "--version",
   "-f": "--lockfile",
 });
-
-// const args = process.argv.slice(2);
 
 async function initDir(): Promise<void> {
   return await new Promise(function (resolve, reject) {
@@ -104,7 +101,7 @@ function emptyDirectory(dirPath: string) {
   console.log(`目录已清空: ${dirPath}`);
 }
 
-async function getLockFile() {
+async function getLockFile(): Promise<string> {
   const lockfile = args["--lockfile"];
   let filePath;
   if (lockfile) {
@@ -137,12 +134,13 @@ async function getLockFile() {
 
 function handleArgs() {
   const latestVersion = getLatestVersion();
-  if(latestVersion !== getCurrentVersion()) {
+  const currentVersion = getCurrentVersion();
+  if(latestVersion !== currentVersion) {
     console.warn(`当前版本已更新到 ${latestVersion}，建议先更新版本！`)
   }
 
   if (args["--version"]) {
-    console.log(getCurrentVersion());
+    console.log(currentVersion);
   } else if (args["--help"]) {
     console.log(helpContent);
   } else {

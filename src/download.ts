@@ -5,7 +5,6 @@ import { execSync } from "node:child_process";
 import { get } from "node:https";
 import pLimit from "p-limit";
 import { tgzFolderName } from "./util";
-import { PathOrFileDescriptor } from "fs";
 
 const limit = pLimit(12);
 const outputFilePath = join(process.cwd(), tgzFolderName);
@@ -45,7 +44,7 @@ export function downloadFilesFromYaml(filePath: string, includeDeps = true) {
 }
 
 /** 通过pnpm-lock.yaml 文件获取所有依赖包列表 */
-function getPackagesFromYaml(filePath: PathOrFileDescriptor, includeDeps: boolean) {
+function getPackagesFromYaml(filePath: string, includeDeps: boolean) {
   const fileContent = readFileSync(filePath, "utf8");
   const data = parse(fileContent);
 
