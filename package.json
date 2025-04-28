@@ -1,17 +1,28 @@
 {
   "name": "fetch-npm-tar",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "download npm tar and all dependencies",
-  "main": "index.mjs",
+  "main": "dist/fetch-npm-tar.mjs",
+  "module": "dist/fetch-npm-tar.mjs",
   "type": "module",
   "bin": {
-    "fetch-npm-tar": "./index.mjs"
+    "fetch-npm-tar": "./dist/fetch-npm-tar.bin.mjs"
   },
   "keywords": [
     "fetch npm"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "test": "vitest",
+    "lint": "eslint ./src --ext .ts --fix",
+    "lint-staged": "lint-staged",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*.ts": [
+      "eslint --fix"
+    ]
   },
   "author": {
     "name": "cdu",
@@ -25,9 +36,34 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   },
+  "files": [
+    "dist",
+    "package.json",
+    "README.md"
+  ],
   "dependencies": {
     "arg": "^5.0.2",
+    "chalk": "^5.4.1",
+    "inquirer": "^12.6.0",
+    "ora": "^8.2.0",
     "p-limit": "^6.2.0",
     "yaml": "^2.7.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.1",
+    "@types/node": "20",
+    "eslint": "^9.25.1",
+    "eslint-config-prettier": "^10.1.2",
+    "eslint-plugin-prettier": "^5.2.6",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "jiti": "^2.4.2",
+    "lint-staged": "^15.5.1",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.31.0",
+    "vite": "^6.3.3",
+    "vite-plugin-dts": "^4.5.3",
+    "vitest": "^3.1.2"
   }
 }
