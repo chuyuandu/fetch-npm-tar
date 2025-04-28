@@ -1,6 +1,6 @@
 {
   "name": "fetch-npm-tar",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "download npm tar and all dependencies",
   "main": "dist/fetch-npm-tar.mjs",
   "module": "dist/fetch-npm-tar.mjs",
