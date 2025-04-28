@@ -1,5 +1,29 @@
 import { execSync } from "node:child_process";
 import pkg from '../package.json'
+import { Result } from "arg";
+
+/** 参数声明 */
+export const arg_declare = {
+  "--help": Boolean,
+  "--version": Boolean,
+  "--lockfile": String,
+  // 是否仅下载指定包名，不解析递归依赖
+  "--no-deps": Boolean,
+  // 最大并发下载数, 最小为 1， 默认为 8
+  "--limit": Number,
+
+  // alias
+  "-h": "--help",
+  "-v": "--version",
+  "-f": "--lockfile",
+  "-l": "--limit",
+};
+/** args 参数解析结果类型 */
+// export type IArgType = Result<typeof arg_declare>;
+export type IArgType = Result<typeof arg_declare> & {
+  cwd: string;
+  tgzFolder: string;
+};
 
 /** 下载文件的保存目录名 */
 export const tgzFolderName = "_downloaded_tgz_files_";

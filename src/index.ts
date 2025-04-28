@@ -10,50 +10,28 @@ import {
   rmdirSync,
 } from "node:fs";
 import { resolve as _resolve, join } from "node:path";
-import { downloadFilesFromYaml } from "./download";
+import { Download } from "./download";
 
 import {
-  tgzFolderName,
   getCurrentVersion,
   getLatestVersion,
   helpContent,
+  type IArgType,
 } from "./util";
-import { type Result } from "arg";
 import ora from "ora";
 import inquirer from "inquirer";
 
 let toBeRemoved: string[] = [];
-const cwd = process.cwd();
-const tgzFiles = _resolve(cwd, tgzFolderName);
-
-/** 参数声明 */
-export const arg_declare = {
-  "--help": Boolean,
-  "--version": Boolean,
-  "--lockfile": String,
-  // 是否仅下载指定包名，不解析递归依赖
-  "--no-deps": Boolean,
-
-  // alias
-  "-h": "--help",
-  "-v": "--version",
-  "-f": "--lockfile",
-};
-/** args 参数解析结果类型 */
-export type IArgType = Result<typeof arg_declare>;
 
 // const args = arg(arg_declare);
 
-async function initDir(): Promise<void> {
-  // return await new Promise(function (resolve, reject) {
-  if (existsSync(tgzFiles)) {
-    // console.error(`${tgzFiles} 已经存在，请考虑删除或换个目录执行`);
-
+async function initDir(tgzFolder: string): Promise<void> {
+  if (existsSync(tgzFolder)) {
     await inquirer
       .prompt({
         type: "list",
         name: "action",
-        message: `${tgzFiles} 已经存在，请选择：`,
+        message: `${tgzFolder} 已经存在，请选择：`,
         choices: [
           { name: "叠加下载，自动跳过已存在的文件", value: "append" },
           { name: "清空目录", value: "clear" },
@@ -64,15 +42,15 @@ async function initDir(): Promise<void> {
         const val = choice.action;
         if (val === "append") {
           // 叠加下载前，需要清除可能存在的 lock 和 json 文件
-          rmSync(_resolve(tgzFiles, "pnpm-lock.yaml"), {
+          rmSync(_resolve(tgzFolder, "pnpm-lock.yaml"), {
             force: true,
           });
-          rmSync(_resolve(tgzFiles, "package.json"), {
+          rmSync(_resolve(tgzFolder, "package.json"), {
             force: true,
           });
           // resolve();
         } else if (val === "clear") {
-          emptyDirectory(tgzFiles);
+          emptyDirectory(tgzFolder);
           // resolve();
         } else if (val === "exit") {
           process.exit();
@@ -81,7 +59,7 @@ async function initDir(): Promise<void> {
         }
       });
   } else {
-    mkdirSync(tgzFiles);
+    mkdirSync(tgzFolder);
   }
   // });
 }
@@ -114,14 +92,15 @@ function emptyDirectory(dirPath: string) {
 
 async function getLockFile(args: IArgType): Promise<string> {
   const lockfile = args["--lockfile"];
+  const tgzFolder = args.tgzFolder;
   let filePath = "";
   if (lockfile) {
-    await initDir();
+    await initDir(tgzFolder);
     // const [name, file_path] = lockfile.split("=");
-    filePath = _resolve(cwd, lockfile);
+    filePath = _resolve(args.cwd, lockfile);
     console.log(`正在使用依赖文件：${filePath}`);
   } else if (args["_"]) {
-    await initDir();
+    await initDir(tgzFolder);
     // // 检查是否通过 npx 调用
     // const isNpx = process.env.npm_execpath && process.env.npm_execpath.includes('npx');
 
@@ -130,14 +109,14 @@ async function getLockFile(args: IArgType): Promise<string> {
       exec(
         `npm init -y && npx pnpm add ${args["_"].join(" ")} --lockfile-only`,
         {
-          cwd: tgzFiles,
+          cwd: args.tgzFolder,
         },
         function () {
           res();
-          filePath = _resolve(tgzFiles, "pnpm-lock.yaml");
+          filePath = _resolve(tgzFolder, "pnpm-lock.yaml");
           toBeRemoved.push(
-            _resolve(tgzFiles, "pnpm-lock.yaml"),
-            _resolve(tgzFiles, "package.json")
+            _resolve(tgzFolder, "pnpm-lock.yaml"),
+            _resolve(tgzFolder, "package.json")
           );
           installing.stop();
         }
@@ -151,11 +130,7 @@ async function getLockFile(args: IArgType): Promise<string> {
 }
 
 export function handleArgs(args: IArgType) {
-  const latestVersion = getLatestVersion();
   const currentVersion = getCurrentVersion();
-  if (latestVersion !== currentVersion) {
-    console.warn(`当前版本已更新到 ${latestVersion}，建议先更新版本！`);
-  }
 
   if (args["--version"]) {
     console.log(currentVersion);
@@ -164,15 +139,25 @@ export function handleArgs(args: IArgType) {
     console.log(helpContent);
     return helpContent;
   } else {
+    const latestVersion = getLatestVersion();
+    if (latestVersion !== currentVersion) {
+      console.warn(`当前版本已更新到 ${latestVersion}，建议先更新版本！`);
+    }
     return getLockFile(args).then((file) => {
-      downloadFilesFromYaml(file, !args["--no-deps"]).finally(() => {
-        // console.log(`已成功下载到：${tgzFiles}`);
-        toBeRemoved.forEach((file) => {
-          rmSync(file, {
-            force: true,
+      new Download({
+        tgzFolder: args.tgzFolder,
+        includeDeps: !args["--no-deps"],
+        limit: args["--limit"],
+      })
+        .downloadFilesFromYaml(file)
+        .finally(() => {
+          // console.log(`已成功下载到：${tgzFiles}`);
+          toBeRemoved.forEach((file) => {
+            rmSync(file, {
+              force: true,
+            });
           });
         });
-      });
     });
   }
 }

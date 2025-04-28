@@ -6,13 +6,13 @@
   "module": "dist/fetch-npm-tar.mjs",
   "type": "module",
   "bin": {
-    "fetch-npm-tar": "./dist/fetch-npm-tar.mjs"
+    "fetch-npm-tar": "./dist/fetch-npm-tar.bin.mjs"
   },
   "keywords": [
     "fetch npm"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "vite build --watch",
     "build": "vite build",
     "test": "vitest"
   },

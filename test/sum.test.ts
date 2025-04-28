@@ -7,7 +7,9 @@ describe("show version", () => {
   it("显示版本号", () => {
     expect(handleArgs({
       '_': [],
-      '--version': true
+      '--version': true,
+      tgzFolder: '_test_',
+      cwd: '_virtual_',
     })).toEqual(pkg.version);
   });
 });
@@ -16,7 +18,9 @@ describe("show help", () => {
   it("显示帮助信息", () => {
     expect(handleArgs({
       '_': [],
-      '--help': true
+      '--help': true,
+      tgzFolder: '_test_',
+      cwd: '_virtual_',
     })).toEqual(helpContent);
   });
 });

@@ -20,7 +20,7 @@ const fileName = {
   index_es: `index.mjs`,
   // cjs: `${getPackageName()}.cjs`,
   // umd: `${getPackageName()}.umd.js`,
-  bin_es: `${getPackageName()}.mjs`,
+  bin_es: `${getPackageName()}.bin.mjs`,
 };
 
 const formats: LibraryFormats[] =  ['es']; //Object.keys(fileName) as Array<keyof typeof fileName>;
