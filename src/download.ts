@@ -1,19 +1,19 @@
-import { parse } from "yaml";
+import { parse } from 'yaml';
 // import { cpus } from "node:os";
-import { join, dirname } from "node:path";
+import { join, dirname } from 'node:path';
 import {
   createWriteStream,
   unlink,
   rename,
   type WriteStream,
   existsSync,
-} from "node:fs";
-import { execSync } from "node:child_process";
-import { get } from "node:https";
-import pLimit from "p-limit";
-import { Output } from "./output";
-import chalk from "chalk";
-import { readFile } from "node:fs/promises";
+} from 'node:fs';
+import { execSync } from 'node:child_process';
+import { get } from 'node:https';
+import pLimit from 'p-limit';
+import { Output } from './output';
+import chalk from 'chalk';
+import { readFile } from 'node:fs/promises';
 
 export class Download {
   private output: Output;
@@ -23,7 +23,7 @@ export class Download {
       tgzFolder: string;
       includeDeps: boolean;
       limit?: number;
-    }
+    },
   ) {
     this.opts = opts;
     this.output = new Output(opts.tgzFolder);
@@ -36,31 +36,31 @@ export class Download {
     const _self = this;
     const pkgList = await _self.getPackagesFromYaml(
       filePath,
-      _self.opts.includeDeps
+      _self.opts.includeDeps,
     );
 
-    let total = pkgList.length;
+    const total = pkgList.length;
     // const limit = pLimit(cpus().length);
     const limit = pLimit(Math.max(8, _self.opts.limit || 1));
 
     _self.output.start(total);
     const registry = _self.getRegistry(dirname(filePath));
-    const downloadList = pkgList.map((pkg) => {
+    const downloadList = pkgList.map(pkg => {
       return limit(() =>
         _self
           .downloadFile(registry, pkg.name, pkg.version)
           .then(() => {
             _self.output.succeedItem();
           })
-          .catch((error) => {
+          .catch(error => {
             _self.output.failedItem(
               `download failed: ${chalk.bgRed(
-                `${pkg.name}@${pkg.version}`
+                `${pkg.name}@${pkg.version}`,
               )} , ${chalk.red(
-                typeof error === "string" ? error : error.message
-              )}`
+                typeof error === 'string' ? error : error.message,
+              )}`,
             );
-          })
+          }),
       );
     });
     return Promise.all(downloadList).finally(() => {
@@ -70,19 +70,19 @@ export class Download {
 
   /** 通过pnpm-lock.yaml 文件获取所有依赖包列表 */
   async getPackagesFromYaml(filePath: string, includeDeps: boolean) {
-    const fileContent = await readFile(filePath, "utf8");
+    const fileContent = await readFile(filePath, 'utf8');
     const data = parse(fileContent);
 
     const pkgList = [];
     if (includeDeps) {
-      for (let pkg in data.packages) {
+      for (const pkg in data.packages) {
         let name, version;
-        if (pkg.startsWith("@")) {
-          const index = pkg.lastIndexOf("@");
+        if (pkg.startsWith('@')) {
+          const index = pkg.lastIndexOf('@');
           name = pkg.slice(0, index);
           version = pkg.slice(index + 1);
         } else {
-          [name, version] = pkg.split("@");
+          [name, version] = pkg.split('@');
         }
         pkgList.push({
           name,
@@ -90,8 +90,8 @@ export class Download {
         });
       }
     } else {
-      const deps = data.importers["."]["dependencies"];
-      for (let pkg in deps) {
+      const deps = data.importers['.']['dependencies'];
+      for (const pkg in deps) {
         pkgList.push({
           name: pkg,
           version: deps[pkg].version,
@@ -104,19 +104,19 @@ export class Download {
   createWriteStreamWithRetry(
     filePath: string,
     retries = 5,
-    delay = 100
+    delay = 100,
   ): Promise<WriteStream> {
     const _self = this;
     return new Promise((resolve, reject) => {
       const attempt = (attemptCount: number) => {
         const stream = createWriteStream(filePath);
-        stream.on("error", (err: any) => {
-          if (err.code === "EPERM" && attemptCount < retries) {
+        stream.on('error', (err: any) => {
+          if (err.code === 'EPERM' && attemptCount < retries) {
             _self.output.failedItem(
               chalk.yellow(
-                `尝试写入文件失败，重试中...  ${attemptCount + 1}/${retries} `
+                `尝试写入文件失败，重试中...  ${attemptCount + 1}/${retries} `,
               ),
-              false
+              false,
             );
             setTimeout(() => attempt(attemptCount + 1), delay);
           } else {
@@ -124,7 +124,7 @@ export class Download {
             reject(`尝试写入文件 ${filePath} 失败, ${err}`);
           }
         });
-        stream.on("open", () => resolve(stream));
+        stream.on('open', () => resolve(stream));
       };
       attempt(0);
     });
@@ -134,7 +134,7 @@ export class Download {
   downloadUrl(
     fileUrl: string,
     filePath: string,
-    maxRedirects = 5
+    maxRedirects = 5,
   ): Promise<void> {
     if (existsSync(filePath)) {
       // 叠加下载时，存在的文件直接跳过
@@ -142,7 +142,7 @@ export class Download {
     }
     const outputPath = `${filePath}_temp`;
     const _self = this;
-    return _self.createWriteStreamWithRetry(outputPath).then((fileStream) => {
+    return _self.createWriteStreamWithRetry(outputPath).then(fileStream => {
       return new Promise(function (resolve, reject) {
         // if(Math.random() > 0.8 ){
         //   return reject('aaa')
@@ -153,7 +153,7 @@ export class Download {
           unlink(outputPath, () => {});
           reject(`重定向次数过多`); // 防止无限重定向
         }
-        get(fileUrl, (response) => {
+        get(fileUrl, response => {
           if (response.statusCode !== 200) {
             fileStream.close();
             response.destroy();
@@ -168,8 +168,8 @@ export class Download {
                     _self.downloadUrl(
                       redirectLocation,
                       filePath,
-                      maxRedirects - 1
-                    )
+                      maxRedirects - 1,
+                    ),
                   ); // 递归处理重定向
                 }
               } else {
@@ -182,7 +182,7 @@ export class Download {
 
           response.pipe(fileStream);
 
-          fileStream.on("finish", () => {
+          fileStream.on('finish', () => {
             fileStream.close(() => {
               rename(outputPath, filePath, () => {
                 resolve();
@@ -190,12 +190,12 @@ export class Download {
             });
           });
 
-          fileStream.on("error", (err: { message: any }) => {
+          fileStream.on('error', (err: { message: any }) => {
             fileStream.close();
             unlink(outputPath, () => {});
             reject(err.message);
           });
-        }).on("error", (err) => {
+        }).on('error', err => {
           fileStream.close();
           unlink(outputPath, () => {});
           reject(err.message);
@@ -207,8 +207,8 @@ export class Download {
   downloadFile(registry: string, packageName: string, packageVersion: any) {
     // 构造 tarball URL
     let fileUrl, fileName;
-    if (packageName.startsWith("@")) {
-      const [org, pkg] = packageName.split("/");
+    if (packageName.startsWith('@')) {
+      const [org, pkg] = packageName.split('/');
       fileUrl = `${registry}/${packageName}/-/${pkg}-${packageVersion}.tgz`;
       fileName = `${org}~${pkg}+${packageVersion}.tgz`;
     } else {
@@ -224,9 +224,9 @@ export class Download {
 
   /** 从指定目录获取 npm config 设置的 registry */
   getRegistry(dir: string) {
-    const stdout = execSync("npm config get registry", {
+    const stdout = execSync('npm config get registry', {
       cwd: dir,
-      encoding: "utf-8",
+      encoding: 'utf-8',
     });
     return stdout.trim();
   }

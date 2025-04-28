@@ -1,5 +1,5 @@
-import chalk from "chalk";
-import ora from "ora";
+import chalk from 'chalk';
+import ora from 'ora';
 
 export class Output {
   public spinner = ora();

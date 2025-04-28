@@ -1,7 +1,8 @@
-import path from "path";
-import { defineConfig } from "vite";
-import packageJson from "./package.json";
-import { LibraryFormats } from "vite";
+import path from 'path';
+import { defineConfig } from 'vite';
+import packageJson from './package.json';
+// import { LibraryFormats } from "vite";
+// import dts from 'vite-plugin-dts'
 
 const getPackageName = () => {
   return packageJson.name;
@@ -9,9 +10,9 @@ const getPackageName = () => {
 
 const getPackageNameCamelCase = () => {
   try {
-    return getPackageName().replace(/-./g, (char) => char[1].toUpperCase());
-  } catch (err) {
-    throw new Error("Name property in package.json is missing.");
+    return getPackageName().replace(/-./g, char => char[1].toUpperCase());
+  } catch {
+    throw new Error('Name property in package.json is missing.');
   }
 };
 const dependencies = Object.keys(packageJson.dependencies || {});
@@ -23,32 +24,42 @@ const fileName = {
   bin_es: `${getPackageName()}.bin.mjs`,
 };
 
-const formats: LibraryFormats[] =  ['es']; //Object.keys(fileName) as Array<keyof typeof fileName>;
+// const formats: LibraryFormats[] =  ['es']; //Object.keys(fileName) as Array<keyof typeof fileName>;
 
 export default defineConfig({
-  base: "./",
+  base: './',
+  // plugins: [
+  //   dts({
+  //     root: __dirname,
+  //     outDir:  "dist/types",
+  //     copyDtsFiles: true,
+  //     tsconfigPath: path.resolve(__dirname, 'tsconfig.json'),
+  //     exclude: ['test/*']
+  //   })
+  // ],
   build: {
-    target: "node20",
-    outDir: "./dist",
+    target: 'node20',
+    outDir: './dist',
     lib: {
       entry: {
-        index: path.resolve(__dirname, "src/index.ts"),
-        bin: path.resolve(__dirname, "src/bin.ts")
+        index: path.resolve(__dirname, 'src/index.ts'),
+        bin: path.resolve(__dirname, 'src/bin.ts'),
       },
       name: getPackageNameCamelCase(),
-      formats,
+      formats: ['es'],
       fileName: (format, entryName: string) => {
         return fileName[`${entryName}_${format}`];
       },
     },
     rollupOptions: {
       external: [/^node:*/, ...dependencies],
+      // external: [/^node:*/],
     },
   },
 
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
+      '@': path.resolve(__dirname, 'src'),
     },
   },
 });
