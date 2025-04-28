@@ -37,6 +37,8 @@ export const helpContent = `
   fetch-npm-tar axios@^1.7.7
   fetch-npm-tar vue axios@^1.7.7
 
+--limit: 参数可以指定并发下载数，默认为 8
+
 默认会解析所有递归的依赖，如果不需要下载其递归的依赖可以添加参数 --no-deps
 
 fetch-npm-tar vue --no-deps
