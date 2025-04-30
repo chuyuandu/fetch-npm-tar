@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm i pnpm@9 -g
+      - run: npm i pnpm@10 -g
       - run: pnpm i
       - run: pnpm test
 
@@ -29,7 +29,7 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
-      - run: npm i pnpm@9 -g
+      - run: npm i pnpm@10 -g
       - run: pnpm i
       - run: pnpm build
       - run: npm publish
