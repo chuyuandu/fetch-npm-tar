@@ -1,6 +1,6 @@
 {
   "name": "fetch-npm-tar",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "download npm tar and all dependencies",
   "main": "dist/fetch-npm-tar.mjs",
   "module": "dist/fetch-npm-tar.mjs",
@@ -9,7 +9,9 @@
     "fetch-npm-tar": "./dist/fetch-npm-tar.bin.mjs"
   },
   "keywords": [
-    "fetch npm"
+    "fetch",
+    "download",
+    "npm"
   ],
   "scripts": {
     "dev": "vite build --watch",
@@ -32,7 +34,7 @@
     "type": "git",
     "url": "https://github.com/chuyuandu/fetch-npm-tar.git"
   },
-  "license": "ISC",
+  "license": "MIT",
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
   },
@@ -63,7 +65,6 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.31.0",
     "vite": "^6.3.3",
-    "vite-plugin-dts": "^4.5.3",
     "vitest": "^3.1.2"
   }
 }

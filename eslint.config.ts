@@ -1,23 +1,14 @@
 import eslint from '@eslint/js';
 import type { Linter } from 'eslint';
-// import eslintConfigPrettier from "eslint-config-prettier";
-import prettier from 'eslint-plugin-prettier/recommended';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import prettier from 'eslint-plugin-prettier';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default [
-  {
-    files: ['**/*.{ts}'],
-  },
-  {
-    languageOptions: {
-      globals: globals.node,
-    },
-  },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
-  // eslintConfigPrettier,
-  prettier,
+  eslintConfigPrettier,
   {
     ignores: [
       '**/.history',
@@ -28,22 +19,21 @@ export default [
       '**/node_modules',
     ],
   },
-  // {
-  //   plugins: {
-  //     typescriptEslint: tseslint.plugin,
-  //     prettier,
-  //   },
-  //   languageOptions: {
-  //     globals: {
-  //       ...globals.browser,
-  //       ...globals.node,
-  //     },
-  //     parser: tseslint.parser,
-  //   },
-  //   rules: {
-  //     "prettier/prettier": "warn",
-  //   },
-  // },
+  {
+    plugins: {
+      typescriptEslint: tseslint.plugin,
+      prettier,
+    },
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+      parser: tseslint.parser,
+    },
+    rules: {
+      'prettier/prettier': 'warn',
+    },
+  },
   {
     rules: {
       '@typescript-eslint/no-this-alias': 'off',
