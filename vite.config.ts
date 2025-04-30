@@ -2,7 +2,7 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import packageJson from './package.json';
 // import { LibraryFormats } from "vite";
-import dts from 'vite-plugin-dts';
+// import dts from 'vite-plugin-dts';
 
 const getPackageName = () => {
   return packageJson.name;
@@ -29,14 +29,13 @@ const fileName = {
 export default defineConfig({
   base: './',
   plugins: [
-    dts({
-      // root: __dirname,
-      // // entryRoot: path.resolve(__dirname, 'src/index.ts'),
-      // // outDir: 'dist/types',
-      // copyDtsFiles: true,
-      // tsconfigPath: path.resolve(__dirname, 'tsconfig.json'),
-      // exclude: ['test/*'],
-    }),
+    // dts({
+    //   root: __dirname,
+    //   outDir: 'types',
+    //   copyDtsFiles: true,
+    //   tsconfigPath: path.resolve(__dirname, 'tsconfig.json'),
+    //   exclude: ['test/*'],
+    // }),
   ],
   build: {
     target: 'node20',
@@ -51,11 +50,9 @@ export default defineConfig({
       fileName: (format, entryName: string) => {
         return fileName[`${entryName}_${format}`];
       },
-      // fileName: 'a.mjs',
     },
     rollupOptions: {
       external: [/^node:*/, ...dependencies],
-      // external: [/^node:*/],
     },
   },
 
