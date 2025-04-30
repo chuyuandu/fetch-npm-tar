@@ -65,8 +65,9 @@ export function getLatestVersion(): string {
   let version = '';
   try {
     version = execSync('npm view fetch-npm-tar version').toString().trim();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
-    console.error('获取 npm 最新版本失败:', err.message);
+    console.error('获取 npm 最新版本失败:', err.message || '');
   }
   return version;
 }

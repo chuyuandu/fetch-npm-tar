@@ -101,7 +101,7 @@ export class Download {
     return pkgList;
   }
 
-  createWriteStreamWithRetry(
+  private createWriteStreamWithRetry(
     filePath: string,
     retries = 5,
     delay = 100,
@@ -110,7 +110,7 @@ export class Download {
     return new Promise((resolve, reject) => {
       const attempt = (attemptCount: number) => {
         const stream = createWriteStream(filePath);
-        stream.on('error', (err: any) => {
+        stream.on('error', (err: Error & { code?: string }) => {
           if (err.code === 'EPERM' && attemptCount < retries) {
             _self.output.failedItem(
               chalk.yellow(
@@ -144,10 +144,6 @@ export class Download {
     const _self = this;
     return _self.createWriteStreamWithRetry(outputPath).then(fileStream => {
       return new Promise(function (resolve, reject) {
-        // if(Math.random() > 0.8 ){
-        //   return reject('aaa')
-        // }
-
         if (maxRedirects <= 0) {
           fileStream.close();
           unlink(outputPath, () => {});
@@ -190,7 +186,7 @@ export class Download {
             });
           });
 
-          fileStream.on('error', (err: { message: any }) => {
+          fileStream.on('error', (err: Error) => {
             fileStream.close();
             unlink(outputPath, () => {});
             reject(err.message);
@@ -204,7 +200,7 @@ export class Download {
     });
   }
   /** 从npm仓库下载包 */
-  downloadFile(registry: string, packageName: string, packageVersion: any) {
+  downloadFile(registry: string, packageName: string, packageVersion: string) {
     // 构造 tarball URL
     let fileUrl, fileName;
     if (packageName.startsWith('@')) {
