@@ -128,36 +128,47 @@ async function getLockFile(args: IArgType): Promise<string> {
   }
   return filePath;
 }
+/** 版本更新检测 */
+function checkVersion(currentVersion: string, wait = 500) {
+  return new Promise<void>(function (resolve) {
+    const latestVersion = getLatestVersion();
+    if (latestVersion !== currentVersion) {
+      console.warn(`当前版本已更新到 ${latestVersion}，建议先更新版本！`);
+      setTimeout(() => resolve(), wait);
+    } else {
+      resolve();
+    }
+  });
+}
 
 export function handleArgs(args: IArgType) {
   const currentVersion = getCurrentVersion();
 
   if (args['--version']) {
     console.log(currentVersion);
+    checkVersion(currentVersion);
     return currentVersion;
   } else if (args['--help']) {
     console.log(helpContent);
+    checkVersion(currentVersion);
     return helpContent;
   } else {
-    const latestVersion = getLatestVersion();
-    if (latestVersion !== currentVersion) {
-      console.warn(`当前版本已更新到 ${latestVersion}，建议先更新版本！`);
-    }
-    return getLockFile(args).then(file => {
-      new Download({
-        tgzFolder: args.tgzFolder,
-        includeDeps: !args['--no-deps'],
-        limit: args['--limit'],
-      })
-        .downloadFilesFromYaml(file)
-        .finally(() => {
-          // console.log(`已成功下载到：${tgzFiles}`);
-          toBeRemoved.forEach(file => {
-            rmSync(file, {
-              force: true,
+    return checkVersion(currentVersion, 2000).then(() => {
+      return getLockFile(args).then(file => {
+        new Download({
+          tgzFolder: args.tgzFolder,
+          includeDeps: !args['--no-deps'],
+          limit: args['--limit'],
+        })
+          .downloadFilesFromYaml(file)
+          .finally(() => {
+            toBeRemoved.forEach(file => {
+              rmSync(file, {
+                force: true,
+              });
             });
           });
-        });
+      });
     });
   }
 }
