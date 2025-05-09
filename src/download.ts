@@ -1,5 +1,5 @@
 import { parse } from 'yaml';
-// import { cpus } from "node:os";
+import { cpus } from 'node:os';
 import { join, dirname } from 'node:path';
 import {
   createWriteStream,
@@ -40,8 +40,7 @@ export class Download {
     );
 
     const total = pkgList.length;
-    // const limit = pLimit(cpus().length);
-    const limit = pLimit(Math.max(8, _self.opts.limit || 1));
+    const limit = pLimit(_self.opts.limit || cpus().length * 2);
 
     _self.output.start(total);
     const registry = _self.getRegistry(dirname(filePath));

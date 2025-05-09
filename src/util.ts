@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import pkg from '../package.json';
 import { Result } from 'arg';
+import chalk from 'chalk';
 
 /** 参数声明 */
 export const arg_declare = {
@@ -28,29 +29,52 @@ export type IArgType = Result<typeof arg_declare> & {
 /** 下载文件的保存目录名 */
 export const tgzFolderName = '_downloaded_tgz_files_';
 
+const params = [
+  {
+    name: '--version',
+    alias: '-v',
+    des: '查看当前版本号',
+  },
+  {
+    name: '--help',
+    alias: '-h',
+    des: '查看帮助信息',
+  },
+  {
+    name: '--lockfile',
+    alias: '-f',
+    des: `指定 ${chalk.yellow('pnpm-lock.yaml')} 文件路径,适用于下载某个项目的所有依赖
+    如果没有该文件，但是有 package-lock.json、 npm-shrinkwrap.json 或 yarn.lock 文件
+    则可以通过 pnpm import 命令生成
+    都没有的话，可以直接通过 pnpm i 生成`,
+  },
+  {
+    name: ['--no-deps'],
+    des: `只解析当前包，不解析递归依赖
+    指定文件时，则只解析 importers[''']['dependencies] 下的依赖，即 package.json 的 ${chalk.yellow('dependencies')} 声明的依赖`,
+  },
+  {
+    name: '--limit',
+    alias: '-l',
+    des: '查看当前版本号',
+  },
+  {
+    name: ['其它参数'],
+    des: `要下载的包名及可选的版本，支持多个，以空格隔开，包名写法参考 ${chalk.yellow('npm install')} 时的语法，仅在未指定 lockfile 时生效`,
+  },
+];
+
 /** 帮助文档 */
 export const helpContent = `
-通过命令行直接下载指定包及所有递归依赖到当前目录下的 ${tgzFolderName} 目录下
-可以直接指定包名，包名写法跟pnpm add 时的参数格式类型，但是目前仅支持 npm 官方的包,以下是一些写法示例, 支持同时多个，空格隔开：
+${chalk.greenBright(`通过命令行直接下载指定包及所有递归依赖或某个项目所有依赖包到当前目录下的 ${chalk.blueBright(tgzFolderName)} 目录下`)}
 
-  fetch-npm-tar axios
-  fetch-npm-tar axios@^1.7.7
-  fetch-npm-tar vue axios@^1.7.7
+${params
+  .map(item => {
+    return `  ${chalk.blueBright(item.name)}: ${item.alias ? ` ${chalk.blue(item.alias)}` : ''}
 
---limit: 参数可以指定并发下载数，默认为 8
-
-默认会解析所有递归的依赖，如果不需要下载其递归的依赖可以添加参数 --no-deps
-
-fetch-npm-tar vue --no-deps
-
-也可以下载某个 pnpm-lock.yaml 文件所有的依赖
-
-  fetch-npm-tar --lockfile="<path_to_pnpm-lock.yaml>"
-
-指定文件下载时，如果设定了 --no-deps 参数，那么只会下载 importers[''']['dependencies] 下的依赖
-对应的是 package.json 的 dependencies
-
-如果是需要下载某个项目的所有依赖，可以现在项目下生成 pnpm-lock.yaml 文件，然后再指定该文件进行下载
+    ${item.des}`;
+  })
+  .join(`\n\n`)}
 `;
 
 /** 获取当前运行的版本号 */

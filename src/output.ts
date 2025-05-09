@@ -34,8 +34,8 @@ export class Output {
   }
 
   reRender() {
-    this.spinner.text = ` 共: ${chalk.blue(this.total)}, 成功：${
-      this.succeedNum > 0 ? chalk.green(this.succeedNum) : this.succeedNum
+    this.spinner.text = ` 共: ${chalk.blueBright(this.total)}, 成功：${
+      this.succeedNum > 0 ? chalk.greenBright(this.succeedNum) : this.succeedNum
     }, 失败：${
       this.failedNum > 0 ? chalk.red(this.failedNum) : this.failedNum
     }, 剩余: ${this.total - this.succeedNum - this.failedNum}`;
@@ -51,6 +51,6 @@ export class Output {
     } else {
       this.spinner.warn();
     }
-    console.log(`文件保存至: ${chalk.underline(this.root)}`);
+    console.log(`文件保存至: ${this.root}`);
   }
 }
