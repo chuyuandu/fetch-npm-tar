@@ -32,6 +32,6 @@ jobs:
       - run: npm i pnpm@10 -g
       - run: pnpm i
       - run: pnpm build
-      - run: npm publish
+      - run: npm publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}

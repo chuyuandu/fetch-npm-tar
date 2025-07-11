@@ -1,6 +1,6 @@
 {
   "name": "fetch-npm-tar",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "download npm tar and all dependencies",
   "main": "dist/fetch-npm-tar.mjs",
   "module": "dist/fetch-npm-tar.mjs",
@@ -37,6 +37,9 @@
   "license": "MIT",
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "files": [
     "dist",
