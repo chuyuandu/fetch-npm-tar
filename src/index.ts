@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { exec } from 'node:child_process';
+import { exec, execSync } from 'node:child_process';
 import {
   existsSync,
   mkdirSync,
@@ -105,20 +105,31 @@ async function getLockFile(args: IArgType): Promise<string> {
     // const isNpx = process.env.npm_execpath && process.env.npm_execpath.includes('npx');
 
     const installing = ora().start('正在解析包依赖...');
-    await new Promise<void>(function (res) {
+
+    execSync('npm init -y', {
+      cwd: args.tgzFolder,
+    });
+
+    await new Promise<void>(function (resolve) {
       exec(
-        `npm init -y && npx pnpm add ${args['_'].join(' ')} --lockfile-only`,
+        `npx pnpm add ${args['_'].join(' ')} --lockfile-only`,
         {
           cwd: args.tgzFolder,
         },
-        function () {
-          res();
-          filePath = _resolve(tgzFolder, 'pnpm-lock.yaml');
-          toBeRemoved.push(
-            _resolve(tgzFolder, 'pnpm-lock.yaml'),
-            _resolve(tgzFolder, 'package.json'),
-          );
-          installing.stop();
+        function (err, stdout) {
+          if (err) {
+            console.error('\n解析依赖报错：', stdout);
+            // reject();
+            process.exit();
+          } else {
+            filePath = _resolve(tgzFolder, 'pnpm-lock.yaml');
+            toBeRemoved.push(
+              _resolve(tgzFolder, 'pnpm-lock.yaml'),
+              _resolve(tgzFolder, 'package.json'),
+            );
+            installing.stop();
+            resolve();
+          }
         },
       );
     });
