@@ -12,28 +12,29 @@
 
 可以直接指定包名，包名写法参考 npm install 时的格式，但是目前仅支持下载 npm 服务器上的包,以下是一些写法示例, 支持同时多个，空格隔开：
 
+### 同时下载多个包
+
 ```sh
-
-
-# 仅指定包名下载
-fetch-npm-tar axios
-# 指定包名和版本
-fetch-npm-tar axios@^1.7.7
-# 同时下载多个包
 fetch-npm-tar vue axios@^1.7.7
-
-# 仅下载指定包，不解析依赖
-fetch-npm-tar vite --no-deps
-
-# 也可以下载某个 `pnpm-lock.yaml`文件所有个依赖
-fetch-npm-tar --lockfile="<relative_path_to_pnpm-lock.yaml>"
-
-# 如果是需要下载某个项目的所有依赖, 有pnpm-lock.yaml文件时就可以直接指定
-# 如果没有，但是有 package-lock.json、 npm-shrinkwrap.json 或 yarn.lock 文件
-# 可以通过 pnpm import 命令生成
-# 都没有的话，可以直接通过 pnpm i 生成
-# 然后就可以通过上面的命令下载项目的所有依赖了
 ```
+
+### 仅下载指定包，不解析依赖
+
+```sh
+fetch-npm-tar vite --no-deps
+```
+
+### 下载项目中所有依赖，可以参考以下方法之一：
+
+1. 下载 `pnpm-lock.yaml`文件所有个依赖
+
+```sh
+fetch-npm-tar --lockfile="<path_to_pnpm-lock.yaml>"
+```
+
+2. 没有 `pnpm-lock.yaml` 文件时，但是有 package-lock.json、 npm-shrinkwrap.json 或 yarn.lock 文件,通过指向 pnpm import 可以生成对应的 `pnpm-lock.yaml` 文件
+
+3. 前面条件都不满足，那就直接将项目初始化后通过 `pnpm i --lockfile-only` 生成 `pnpm-lock.yaml` 文件
 
 # 参数说明
 
@@ -45,3 +46,7 @@ fetch-npm-tar --lockfile="<relative_path_to_pnpm-lock.yaml>"
 | --no-deps          | 指定包名时，只解析当前包，不解析依赖<br />指定文件时，则只解析 importers[''']['dependencies] 下的依赖，即 package.json 的 dependencies          |
 | --limit<br />-l    | 指定并发下载数，默认为 cpu 核数的两倍                                                                                                           |
 | 其它参数           | 要下载的包名及可选的版本，仅在未指定 lockfile 时生效<br /> `fetch-npm-tar xxx@xxx` <br /> `fetch-npm-tar xxx@xxx xx2@latest`                    |
+
+```
+
+```

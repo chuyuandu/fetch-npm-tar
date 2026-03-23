@@ -56,7 +56,7 @@ const params = [
   {
     name: '--limit',
     alias: '-l',
-    des: '查看当前版本号',
+    des: '最大并发下载数, 最小为 1， 默认为 cpu 核心数的 2 倍',
   },
   {
     name: ['其它参数'],

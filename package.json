@@ -1,6 +1,6 @@
 {
   "name": "fetch-npm-tar",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "download npm tar and all dependencies",
   "main": "dist/fetch-npm-tar.mjs",
   "module": "dist/fetch-npm-tar.mjs",
@@ -52,6 +52,7 @@
     "inquirer": "^12.6.0",
     "ora": "^8.2.0",
     "p-limit": "^6.2.0",
+    "pnpm": "^10.32.1",
     "yaml": "^2.7.1"
   },
   "devDependencies": {
