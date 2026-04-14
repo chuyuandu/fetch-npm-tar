@@ -20,6 +20,7 @@ import {
 } from './util';
 import ora from 'ora';
 import inquirer from 'inquirer';
+import chalk from 'chalk';
 
 const toBeRemoved: string[] = [];
 
@@ -140,12 +141,20 @@ async function getLockFile(args: IArgType): Promise<string> {
   return filePath;
 }
 /** 版本更新检测 */
-function checkVersion(currentVersion: string, wait = 500) {
+function checkVersion(currentVersion: string, args: IArgType) {
   return new Promise<void>(function (resolve) {
+    if (args['--skipVersionCheck']) {
+      resolve();
+      return;
+    }
     const latestVersion = getLatestVersion();
     if (latestVersion !== currentVersion) {
-      console.warn(`当前版本已更新到 ${latestVersion}，建议先更新版本！`);
-      setTimeout(() => resolve(), wait);
+      if (latestVersion) {
+        const msg = `当前版本已更新到 ${latestVersion}, 请先更新版本！`;
+        console.log(chalk.red(msg));
+      }
+      // setTimeout(() => resolve(), 500);
+      process.exit(0);
     } else {
       resolve();
     }
@@ -157,14 +166,14 @@ export function handleArgs(args: IArgType) {
 
   if (args['--version']) {
     console.log(currentVersion);
-    checkVersion(currentVersion);
+    checkVersion(currentVersion, args);
     return currentVersion;
   } else if (args['--help']) {
     console.log(helpContent);
-    checkVersion(currentVersion);
+    checkVersion(currentVersion, args);
     return helpContent;
   } else {
-    return checkVersion(currentVersion, 2000).then(() => {
+    return checkVersion(currentVersion, args).then(() => {
       return getLockFile(args).then(file => {
         new Download({
           tgzFolder: args.tgzFolder,

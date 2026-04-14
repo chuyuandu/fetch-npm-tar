@@ -4,6 +4,8 @@
 
 也支持通过指定 pnpm-lock.yaml 文件下载项目里面的所有依赖包
 
+可搭配 `push-npm-tar` 将文件上传到私有服务器
+
 ## 使用
 
 可以全局安装 `npm i fetch-npm-tar -g`, 然后使用 `fetch-npm-tar xxxx`
@@ -33,7 +35,6 @@ fetch-npm-tar --lockfile="<path_to_pnpm-lock.yaml>"
 ```
 
 2. 没有 `pnpm-lock.yaml` 文件时，但是有 package-lock.json、 npm-shrinkwrap.json 或 yarn.lock 文件,通过指向 pnpm import 可以生成对应的 `pnpm-lock.yaml` 文件
-
 3. 前面条件都不满足，那就直接将项目初始化后通过 `pnpm i --lockfile-only` 生成 `pnpm-lock.yaml` 文件
 
 # 参数说明

@@ -12,12 +12,15 @@ export const arg_declare = {
   '--no-deps': Boolean,
   // 最大并发下载数, 最小为 1， 默认为 8
   '--limit': Number,
+  // 是否跳过工具版本检测，默认为 false
+  '--skipVersionCheck': Boolean,
 
   // alias
   '-h': '--help',
   '-v': '--version',
   '-f': '--lockfile',
   '-l': '--limit',
+  '-s': '--skipVersionCheck',
 };
 /** args 参数解析结果类型 */
 // export type IArgType = Result<typeof arg_declare>;
@@ -57,6 +60,11 @@ const params = [
     name: '--limit',
     alias: '-l',
     des: '最大并发下载数, 最小为 1， 默认为 cpu 核心数的 2 倍',
+  },
+  {
+    name: '--skipVersionCheck',
+    alias: '-s',
+    des: '是否跳过版本检查，默认会自动检查 `fetch-npm-tar`包的版本更新\n并要求最新版才可以进行拉取',
   },
   {
     name: ['其它参数'],

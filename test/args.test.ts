@@ -9,6 +9,7 @@ describe('show version', () => {
       handleArgs({
         _: [],
         '--version': true,
+        '--skipVersionCheck': true,
         tgzFolder: '_test_',
         cwd: '_virtual_',
       }),
@@ -22,6 +23,7 @@ describe('show help', () => {
       handleArgs({
         _: [],
         '--help': true,
+        '--skipVersionCheck': true,
         tgzFolder: '_test_',
         cwd: '_virtual_',
       }),

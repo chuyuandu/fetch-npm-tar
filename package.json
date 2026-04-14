@@ -1,6 +1,6 @@
 {
   "name": "fetch-npm-tar",
-  "version": "1.2.6",
+  "version": "1.3.0",
   "description": "download npm tar and all dependencies",
   "main": "dist/fetch-npm-tar.mjs",
   "module": "dist/fetch-npm-tar.mjs",
@@ -11,11 +11,14 @@
   "keywords": [
     "fetch",
     "download",
-    "npm"
+    "npm",
+    "fetch-npm-tar",
+    "push-npm-tar"
   ],
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
+    "debug": "tsx src/bin.ts",
     "test": "vitest",
     "lint": "eslint --ext .ts --fix",
     "lint-staged": "lint-staged",
@@ -66,6 +69,7 @@
     "jiti": "^2.4.2",
     "lint-staged": "^15.5.1",
     "prettier": "^3.5.3",
+    "tsx": "^4.21.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.31.0",
     "vite": "^6.3.3",
